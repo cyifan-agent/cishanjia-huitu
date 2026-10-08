@@ -1,0 +1,27 @@
+name: Portable vector contract
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  synthetic:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Set up self-contained skill runtime
+        run: python skills/cishanjia-huitu/scripts/setup_runtime.py
+      - name: Synthetic vector and portability checks
+        run: |
+          python skills/cishanjia-huitu/scripts/tests/test_portable_runtime.py
+          python skills/cishanjia-huitu/scripts/tests/test_joined_routes.py
+          python skills/cishanjia-huitu/scripts/tests/test_source_markers.py
+          python skills/cishanjia-huitu/scripts/tests/test_native_paint.py
+          node skills/cishanjia-huitu/scripts/tests/test_export_owner.js skills/cishanjia-huitu/scripts/export_native_figure.jsx
+          node skills/cishanjia-huitu/scripts/tests/symbol_name_test.js skills/cishanjia-huitu/scripts/native_svg_import.jsx

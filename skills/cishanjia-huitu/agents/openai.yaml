@@ -1,0 +1,4 @@
+interface:
+  display_name: "cishanjia-huitu"
+  short_description: "Draw clean vectors with independent arrows and objects"
+  default_prompt: "Use $cishanjia-huitu to redraw this reference with source-specific editable curves, live text and complete independent objects. Do not embed screenshots or recreate pixels as vector tiles. Prepare and review the full drawing first; verify every arrow in isolation and by movement before Illustrator delivery."
