@@ -39,7 +39,7 @@ def render(svg: Path, width: int, height: int,cache=None) -> np.ndarray:
     import tempfile
     from preview_fonts import font_files_for_svg
     with tempfile.TemporaryDirectory(prefix="huitu-preview-fonts-") as temporary:
-        files=font_files_for_svg(svg,Path(temporary))
+        files=font_files_for_svg(svg,Path(temporary),cache_dir=cache.directory/'fonts' if cache is not None and cache.directory is not None else None)
         payload=render_png(svg.read_text(encoding='utf-8-sig'),width=width,height=height,font_files=files,cache=cache)
     data = np.frombuffer(payload, dtype=np.uint8)
     image = cv2.imdecode(data, cv2.IMREAD_COLOR)
@@ -109,12 +109,12 @@ def region_metrics(source: np.ndarray, output: np.ndarray, regions_path: Path | 
     return result
 
 
-def compare(args: argparse.Namespace) -> dict:
+def compare(args: argparse.Namespace,cache=None) -> dict:
     source = load_image(Path(args.source).resolve())
     canvas = view_box(ET.parse(args.svg).getroot())
     if any(abs(a-b) > 1e-6 for a, b in zip(canvas, (0, 0, source.shape[1], source.shape[0]))):
         raise ValueError("SVG viewBox must match source pixel canvas; fix coordinates instead of stretching")
-    cache=from_directory(getattr(args,'cache_dir',None))
+    if cache is None:cache=from_directory(getattr(args,'cache_dir',None))
     output = render(Path(args.svg).resolve(), source.shape[1], source.shape[0],cache)
     if output.shape[:2] != source.shape[:2]:
         raise ValueError("SVG render aspect ratio differs from the source; do not rescale a mismatch away")

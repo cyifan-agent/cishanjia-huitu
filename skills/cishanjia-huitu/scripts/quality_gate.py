@@ -27,7 +27,8 @@ def build(svg: Path, comparison: Path, review: Path, require_object_groups: bool
     if not plan_value:errors.append('Authored vector drawing plan required; no screenshot/mesh final fallback')
     else:
         plan_path=Path(plan_value)
-        if not plan_path.is_absolute():plan_path=review.parent/plan_path
+        if not plan_path.is_absolute():
+            plan_path=plan_path.resolve() if drawing_plan is not None else review.parent/plan_path
         try:
             from redraw_audit import audit as redraw_audit
             construction=redraw_audit(svg,plan_path,cache=cache)

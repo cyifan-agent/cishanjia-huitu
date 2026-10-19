@@ -100,6 +100,39 @@ export. A low glyph error over overlapping graphics is not reliable evidence.
 
 ## Whole components and object-local revisions
 
+### Optional measured native live-text fitting
+
+Use `native_svg_import.ps1 -TextFitManifest native-text-fit.json` when measured
+glyph bounds show a real native spacing/size difference. The manifest binds to
+the exact reviewed SVG. Entries identify existing source text IDs and preserve
+their exact content. `bbox_px` is measured ink `[x,y,width,height]` in the source
+canvas; no hardcoded font, language, title prefix or tracking value is inferred.
+
+```json
+{"svg_sha256":"CURRENT_MASTER_SHA256","text_elements":[
+ {"id":"label-01","content":"Measured label","bbox_px":[120,80,180,22],
+  "tracking":[{"start":8,"length":1,"value":25}]}]}
+```
+
+Tracking is optional, in Illustrator thousandths of an em. Indices count UTF-16
+code units and must fit the run without overlaps. Use only source-measured
+corrections. A previous reference's punctuation correction is not a new default.
+The binder rejects stale revisions, changed text, unknown/duplicate IDs, invalid
+bounds, rotated text and invalid spans before connecting to Illustrator.
+
+Native fitting outlines only disposable duplicates to measure glyph bounds,
+updates live font size/width and position before symbol conversion, and preserves
+the actual text. Two measurements suffice: translation cannot alter dimensions.
+Review the actual export, because outer bounds do not prove internal kerning.
+Regenerate the manifest after a master revision. Omit the option when unnecessary.
+
+Preview font resolution honors inherited styles, collection faces and variable
+weights, and reports missing Unicode glyphs before native delivery. Select a
+locally available font or a source-matched separate text run for unsupported
+notation; do not silently omit a character or accept a tofu box.
+
+### Component extraction and revision
+
 Extract a complete owner from a reviewed construction master:
 
 ```powershell

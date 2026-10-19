@@ -11,10 +11,11 @@ function fixture(name,saveAi=false){
  const userDoc={name:'User.ai',fullName:{fsName:'User.ai'},groupItems:{getByName(){return original;}},activate(){calls.push('activate-original');}};
  const importedNames=new Set([name.substring(0,40)+' [fixture-0]']);
  const temp={activeLayer:{},artboards:[{artboardRect:[0,600,900,0]}],rasterItems:[],symbols:{add(owner){assert.equal(owner,anchor,'Select named owner, not an ancestor');return {set name(value){assert(!importedNames.has(value),'the name is in use');assert(value.length<=63);importedNames.add(value);}};}},symbolItems:{add(def){return {get visibleBounds(){return bounds;},move(){},translate(){}};}},exportFile(file){assert.deepEqual(bounds,[0,600,900,0]);calls.push('export');},saveAs(){calls.push('save-ai');},close(){calls.push('close-temporary');}};
- const context={HUITU_EXPORT_CONFIG:{targetDocument:'User.ai',groupName:'job',width:900,height:600,scale:2,objects:[{id:'background',name}],svgSha256:'fixture',outputPng:'fixture.png',outputAi:saveAi?'Full-size.ai':'',objectMode:'symbol',antiAliasing:true},app:{activeDocument:userDoc,userInteractionLevel:0,documents:{add(){return temp;}}},DocumentColorSpace:{RGB:0},ElementPlacement:{PLACEATBEGINNING:0},Transformation:{TOPLEFT:0},UserInteractionLevel:{DONTDISPLAYALERTS:1},ExportOptionsPNG24:function(){},IllustratorSaveOptions:function(){},File:function(path){this.fsName=path;},ExportType:{PNG24:0},SaveOptions:{DONOTSAVECHANGES:0}};
+ const documents=[userDoc];documents.add=()=>temp;
+ const context={HUITU_EXPORT_CONFIG:{targetDocument:'User.ai',targetDocumentPath:'User.ai',groupName:'job',width:900,height:600,scale:2,objects:[{id:'background',name}],svgSha256:'fixture',outputPng:'fixture.png',outputAi:saveAi?'Full-size.ai':'',objectMode:'symbol',antiAliasing:true},app:{activeDocument:userDoc,userInteractionLevel:0,documents},DocumentColorSpace:{RGB:0},ElementPlacement:{PLACEATBEGINNING:0},Transformation:{TOPLEFT:0},UserInteractionLevel:{DONTDISPLAYALERTS:1},ExportOptionsPNG24:function(){},IllustratorSaveOptions:function(){},File:function(path){this.fsName=path;},ExportType:{PNG24:0},SaveOptions:{DONOTSAVECHANGES:0}};
  let result=JSON.parse(vm.runInNewContext(source,context));
  assert.equal(result.status,'PASS',name+': '+result.error);
- assert.deepEqual(calls,['resize','translate','export',...(saveAi?['save-ai']:[]),'close-temporary','activate-original']);
+ assert.deepEqual(calls,['activate-original','resize','translate','export',...(saveAi?['save-ai']:[]),'close-temporary','activate-original']);
 }
 fixture('Background');fixture('白色背景');fixture('底色：保留原图');
 fixture('Background',true);fixture('白色背景',true);fixture('复杂对象名'.repeat(12),true);

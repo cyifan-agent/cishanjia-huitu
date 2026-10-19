@@ -7,6 +7,39 @@
   f.write('{"status":'+quoted(status)+',"svg_sha256":'+quoted(c.sha256)+',"detail":'+quoted(detail)+(extra||'')+'}');f.close();
  }
  function actualFamily(font){return String(font.family).toLowerCase().replace(/\s+/g,' ');}
+ function capturedDocument(name,path){
+  if(!name&&!path)throw new Error('Captured target document required');
+  var key=String(path||'').replace(/\\/g,'/').toLowerCase(),chosen=null,count=0;
+  for(var di=0;di<app.documents.length;di++){
+   var candidate=app.documents[di],matched=false;
+   if(key){var actual='';try{actual=String(candidate.fullName.fsName).replace(/\\/g,'/').toLowerCase();}catch(unsaved){}matched=actual===key;}
+   else matched=candidate.name===name;
+   if(matched){chosen=candidate;count++;}
+  }
+  if(!count)throw new Error('Captured target document missing: '+name);
+  if(count!==1)throw new Error('Captured target document ambiguous: '+name);
+  chosen.activate();return chosen;
+ }
+ function fitLiveText(text,label,origin){
+  if(!label.nativeFit)return false;
+  if(Math.abs(label.rotation||0)>1e-8)throw new Error('Rotated text needs manual native fitting');
+  var fit=label.nativeFit,bounds=fit.bbox_px,tracking=fit.tracking||[];
+  for(var si=0;si<tracking.length;si++)for(var ci=tracking[si].start;ci<tracking[si].start+tracking[si].length;ci++)text.characters[ci].characterAttributes.tracking=tracking[si].value;
+  function measure(){
+   var probe=text.duplicate(),outline=null;
+   try{outline=probe.createOutline();probe=null;return outline.visibleBounds;}
+   finally{if(outline)outline.remove();if(probe)probe.remove();}
+  }
+  var b=measure(),w=b[2]-b[0],h=b[1]-b[3];
+  if(w<=0||h<=0)throw new Error('Empty native glyph bounds: '+label.source_id);
+  var sy=bounds[3]/h,sx=bounds[2]/w;
+  text.textRange.characterAttributes.size*=sy;
+  text.textRange.characterAttributes.horizontalScale*=sx/sy;
+  b=measure();text.translate(origin[0]+bounds[0]-b[0],origin[1]-bounds[1]-b[1]);
+  // Translation cannot change width or height; the second outline is sufficient.
+  if(Math.abs(b[2]-b[0]-bounds[2])>.12||Math.abs(b[1]-b[3]-bounds[3])>.12)throw new Error('Native text fitting failed: '+label.source_id);
+  return true;
+ }
  function definitionName(spec){
   var index=-1;for(var i=0;i<c.objects.length;i++)if(c.objects[i].id===spec.id){index=i;break;}
   // Illustrator limits definition names to 63 characters. Keep a readable
@@ -47,28 +80,62 @@
   return containers[wanted.object_id];
  }
  function fontFor(label){
+  var collection=app.textFonts,signature=collection.length+'|'+(collection.length?collection[0].name:'');
+  var index=fontFor.index;
+  if(!index||index.signature!==signature){
+   index={signature:signature,names:{},families:{},resolved:{}};
+   for(var fi=0;fi<collection.length;fi++){
+    var face=collection[fi],family=actualFamily(face);index.names[face.name]=face;
+    if(!index.families[family])index.families[family]=[];index.families[family].push(face);
+   }
+   fontFor.index=index;
+  }
+  var key=label.family+'|'+label.weight+'|'+label.style;
+  if(index.resolved[key])return index.resolved[key];
   var token=label.family.replace(/[^A-Za-z0-9]/g,''),bold=String(label.weight).toLowerCase()==='bold'||Number(label.weight)>=600;
   var italic=label.style==='italic'||label.style==='oblique',suffix='';
   if(bold&&italic)suffix='-BoldItalic';else if(bold)suffix='-Bold';else if(italic)suffix='-Italic';
   var candidates=[token+suffix+'MT',token+suffix,label.family+suffix+'MT',label.family+suffix];
-  for(var i=0;i<candidates.length;i++)for(var k=0;k<app.textFonts.length;k++){
-   var f=app.textFonts[k];if(f.name!==candidates[i])continue;
+  var requested=String(label.weight).toLowerCase()==='bold'?700:Number(label.weight);if(!isFinite(requested)||requested===0)requested=400;
+  var styles={100:['Thin'],200:['ExtraLight','UltraLight'],300:['Light'],400:['Regular','Normal','Book'],500:['Medium'],600:['SemiBold','DemiBold'],700:['Bold'],800:['ExtraBold','UltraBold'],900:['Black','Heavy']};
+  var exact=styles[requested]||[];
+  for(var sn=exact.length-1;sn>=0;sn--){var nativeStyle=exact[sn]+(italic?'Italic':'');candidates.unshift(token+'-'+nativeStyle,token+nativeStyle,label.family+'-'+nativeStyle);}
+  for(var i=0;i<candidates.length;i++){
+   var f=index.names[candidates[i]];if(!f)continue;
    var s=String(f.style).toLowerCase();
-   if(bold===/bold|demi|black|heavy/.test(s)&&italic===/italic|oblique/.test(s))return f;
+   if(bold===/bold|demi(?!light)|black|heavy/.test(s)&&italic===/italic|oblique/.test(s)){index.resolved[key]=f;return f;}
   }
-  for(var j=0;j<app.textFonts.length;j++){
-   var face=app.textFonts[j],style=String(face.style).toLowerCase();
-   if(actualFamily(face)===label.family.toLowerCase()&&bold===/bold|demi|black|heavy/.test(style)&&italic===/italic|oblique/.test(style))return face;
+  var members=index.families[label.family.toLowerCase()]||[];
+  var closest=null,distance=10000;
+  function styleWeight(raw){
+   var s=String(raw).toLowerCase().replace(/[\s_-]+/g,'');
+   if(/black|heavy/.test(s))return 900;if(/extrabold|ultrabold/.test(s))return 800;
+   if(/semibold|demibold/.test(s))return 600;if(/bold/.test(s))return 700;
+   if(/demilight/.test(s))return 350;if(/extralight|ultralight/.test(s))return 200;
+   if(/light/.test(s))return 300;if(/thin|hairline/.test(s))return 100;
+   if(/medium/.test(s))return 500;return 400;
   }
+  for(var j=0;j<members.length;j++){
+   var face=members[j],style=String(face.style).toLowerCase();
+   if(bold!==/bold|demi(?!light)|black|heavy/.test(style)||italic!==/italic|oblique/.test(style))continue;
+   var delta=Math.abs(styleWeight(style)-requested);
+   if(delta<distance){distance=delta;closest=face;}
+  }
+  if(closest){index.resolved[key]=closest;return closest;}
   throw new Error('Requested native font unavailable: '+label.family+' / '+label.weight+' / '+label.style);
  }
  if(c.preflight){
+  var selected=null;if(c.captureTarget)selected=(c.targetDocument||c.targetDocumentPath)?capturedDocument(c.targetDocument,c.targetDocumentPath):app.activeDocument;
   var fontNames=[];for(var pf=0;pf<c.labels.length;pf++)fontNames.push(quoted(fontFor(c.labels[pf]).name));
+  if(c.captureTarget){
+   var selectedPath='';try{selectedPath=selected.fullName.fsName;}catch(unsavedTarget){}
+   return '{"fonts":['+fontNames.join(',')+'],"target_document":'+quoted(selected.name)+',"target_document_path":'+quoted(selectedPath)+'}';
+  }
   return '['+fontNames.join(',')+']';
  }
  try{
   if(!app.documents.length)throw new Error('No existing Illustrator document');
-  userDocument=app.activeDocument;
+  userDocument=(c.targetDocument||c.targetDocumentPath)?capturedDocument(c.targetDocument,c.targetDocumentPath):app.activeDocument;
   if(c.smoke){smokeDocument=app.documents.add(DocumentColorSpace.RGB,320,220);target=smokeDocument;}
   else target=userDocument;
   oldBoard=target.artboards.getActiveArtboardIndex();
@@ -116,6 +183,7 @@
    if(wanted.rotation)created.rotate(-wanted.rotation);
    created.move(destination,ElementPlacement.PLACEATBEGINNING);
    created.name=wanted.source_id||wanted.content;
+   fitLiveText(created,wanted,[sourceRect[0],sourceRect[1]]);
    fontEvidence.push(wanted.nativeFont);
   }
   var objectEvidence=[],sourceBounds={},verifiedTextCount=0;
@@ -185,7 +253,7 @@
   if(!(new File(c.outputAi)).exists||!(new File(c.outputPng)).exists)throw new Error('Output missing');
   completed=true;
   var fontJson=[];for(var fi=0;fi<fontEvidence.length;fi++)fontJson.push(quoted(fontEvidence[fi]));
-  writeReport('PASS','Native editable artwork appended; inspect exported PNG',',"target_document":'+quoted(target.name)+',"prior_items":'+before+',"prior_artwork_preserved":true,"live_text":'+verifiedTextCount+',"raster_items":0,"placed_items":0,"imported_items":'+root.pageItems.length+',"scale":'+scale+',"native_fonts":['+fontJson.join(',')+'],"object_mode":'+quoted(c.objectMode||'group')+',"symbol_items":'+root.symbolItems.length+',"object_grouping":'+quoted(c.grouping||'flat-legacy')+',"object_groups":['+objectEvidence.join(',')+']');
+  writeReport('PASS','Native editable artwork appended; inspect exported PNG',',"target_document":'+quoted(target.name)+',"target_document_path":'+quoted(c.outputAi)+',"prior_items":'+before+',"prior_artwork_preserved":true,"live_text":'+verifiedTextCount+',"raster_items":0,"placed_items":0,"imported_items":'+root.pageItems.length+',"scale":'+scale+',"native_fonts":['+fontJson.join(',')+'],"object_mode":'+quoted(c.objectMode||'group')+',"symbol_items":'+root.symbolItems.length+',"object_grouping":'+quoted(c.grouping||'flat-legacy')+',"object_groups":['+objectEvidence.join(',')+']');
   return 'PASS|live_text='+verifiedTextCount+'|items='+root.pageItems.length+'|prior_items='+before;
  }catch(error){
   try{writeReport('FAIL',String(error)+'|phase='+phase+'|line='+error.line);}catch(ignoreWrite){}

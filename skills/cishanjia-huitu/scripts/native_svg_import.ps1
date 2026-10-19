@@ -5,6 +5,9 @@ param(
  [Parameter(Mandatory=$true)][string]$WorkDir,
  [Parameter(Mandatory=$true)][string]$OutputAi,
  [Parameter(Mandatory=$true)][string]$OutputPng,
+ [string]$TargetDocumentName,
+ [string]$TargetDocumentPath,
+ [string]$TextFitManifest,
  [ValidateRange(0.1,1)][double]$MaxFraction=0.92,
  [ValidateSet('symbol','group')][string]$ObjectMode='symbol',
  [switch]$SmokeTest,
@@ -50,6 +53,10 @@ $nativeInput=Join-Path $jobPath 'native-graphics.svg'
 $nativeLabels=Join-Path $jobPath 'native-text.json'
 & $taskPython -X utf8 (Join-Path $PSScriptRoot 'prepare_native_svg.py') --input $resolvedInput --graphics $nativeInput --labels $nativeLabels
 if($LASTEXITCODE -ne 0){throw 'NATIVE_GEOMETRY_PREPARE_FAILED'}
+if($TextFitManifest){
+ & $taskPython -X utf8 (Join-Path $PSScriptRoot 'native_text_fit.py') --svg $resolvedInput --labels $nativeLabels --manifest $TextFitManifest --width $svg.DocumentElement.GetAttribute('width') --height $svg.DocumentElement.GetAttribute('height')
+ if($LASTEXITCODE -ne 0){throw 'NATIVE_TEXT_FIT_MANIFEST_INVALID'}
+}
 $nativePayload=Get-Content -LiteralPath $nativeLabels -Raw -Encoding UTF8 | ConvertFrom-Json
 $labels=$nativePayload.labels
 if($null -eq $labels){$labels=@()}
@@ -59,6 +66,8 @@ $config.objectMode=$ObjectMode
 $config.delayMs=$DelayMs
 $config.objects=@($nativePayload.objects)
 $config.grouping=[string]$nativePayload.grouping
+$config.targetDocument=$TargetDocumentName
+$config.targetDocumentPath=$TargetDocumentPath
 if($DryRun){$config | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $jobPath 'native-dry-run.json') -Encoding UTF8; 'DRY_RUN|No Illustrator connection';exit 0}
 if(Test-Path -LiteralPath $reportPath){throw 'NATIVE_IMPORT_ALREADY_ATTEMPTED|Inspect the existing job/report before retrying.'}
 $config | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $jobPath 'native-config.json') -Encoding UTF8
@@ -66,9 +75,14 @@ $config | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $jobPath
 $taskAi=Get-HuituActiveIllustrator
 $runtime=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'native_svg_import.jsx') -Raw -Encoding UTF8
 $config.preflight=$true
+$config.captureTarget=$true
 $preflight=$taskAi.DoJavaScript('var HUITU_NATIVE_CONFIG='+($config | ConvertTo-Json -Depth 8 -Compress)+';'+$runtime)
 $preflight | Set-Content -LiteralPath (Join-Path $jobPath 'native-font-preflight.json') -Encoding UTF8
-$fontNames=ConvertFrom-Json -InputObject $preflight
+$fontPreflight=ConvertFrom-Json -InputObject $preflight
+$fontNames=@($fontPreflight.fonts)
+$config.targetDocument=[string]$fontPreflight.target_document
+$config.targetDocumentPath=[string]$fontPreflight.target_document_path
+if(-not $config.targetDocument){throw 'NATIVE_TARGET_CAPTURE_FAILED'}
 if($fontNames.Count -ne $nodes.Count){throw ('NATIVE_FONT_PREFLIGHT_FAILED|fonts='+$fontNames.Count+'|labels='+$nodes.Count)}
 # Text is recreated as point text; do not mutate imported SVG text frames.
 for($i=0;$i -lt $nodes.Count;$i++){
@@ -80,3 +94,7 @@ $literal=$config | ConvertTo-Json -Depth 8 -Compress
 $result=$taskAi.DoJavaScript('var HUITU_NATIVE_CONFIG='+$literal+';'+$runtime)
 $result
 if($result -notlike 'PASS|*'){throw ('NATIVE_IMPORT_FAILED|'+$result)}
+$completedReport=Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8 | ConvertFrom-Json
+$config.targetDocument=[string]$completedReport.target_document
+$config.targetDocumentPath=[string]$completedReport.target_document_path
+$config | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $jobPath 'native-config.json') -Encoding UTF8

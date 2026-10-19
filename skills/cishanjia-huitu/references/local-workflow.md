@@ -68,6 +68,14 @@ plan and route geometry, so a manually marked pass cannot approve a color mesh.
 
 ## Drawing and recovery
 
+For multiple open documents add `-TargetDocumentName 'known unique name'` to
+import, or `-TargetDocumentPath 'absolute existing saved AI path'` when basenames
+repeat. Import preflight captures the target; the successful saved output path
+is retained for subsequent commands. Do not rely on the foreground tab during
+verification/export. Optional source-bound `-TextFitManifest` is documented in
+detail-refinement.md. Save PowerShell helper files with UTF-8 BOM for Chinese
+paths/text under Windows PowerShell 5.1.
+
 ```powershell
 & "$taskSkill\scripts\native_svg_import.ps1" -InputSvg master.svg -QaReport quality-gate.json -WorkDir native -OutputAi result.ai -OutputPng result.png -ObjectMode symbol -LiveDraw -DelayMs 250
 & "$taskSkill\scripts\verify_native_editability.ps1" -NativeWorkDir native -OutputReport native-editability.json

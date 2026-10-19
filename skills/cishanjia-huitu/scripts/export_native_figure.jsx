@@ -1,5 +1,18 @@
 (function(){
- var c=HUITU_EXPORT_CONFIG,userDoc=app.activeDocument,tempDoc=null,oldLevel=app.userInteractionLevel;
+ var c=HUITU_EXPORT_CONFIG,userDoc=capturedDocument(HUITU_EXPORT_CONFIG.targetDocument,HUITU_EXPORT_CONFIG.targetDocumentPath),tempDoc=null,oldLevel=app.userInteractionLevel;
+ function capturedDocument(name,path){
+  if(!name&&!path)throw new Error('Captured target document required');
+  var key=String(path||'').replace(/\\/g,'/').toLowerCase(),chosen=null,count=0;
+  for(var di=0;di<app.documents.length;di++){
+   var candidate=app.documents[di],matched=false;
+   if(key){var actual='';try{actual=String(candidate.fullName.fsName).replace(/\\/g,'/').toLowerCase();}catch(unsaved){}matched=actual===key;}
+   else matched=candidate.name===name;
+   if(matched){chosen=candidate;count++;}
+  }
+  if(!count)throw new Error('Captured target document missing: '+name);
+  if(count!==1)throw new Error('Captured target document ambiguous: '+name);
+  chosen.activate();return chosen;
+ }
  function q(v){return '"'+String(v).replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\r/g,'\\r').replace(/\n/g,'\\n')+'"';}
  function findNamed(node,name){
   if(node.name===name)return node;

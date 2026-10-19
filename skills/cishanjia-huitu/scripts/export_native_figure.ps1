@@ -29,6 +29,7 @@ if($taskWidth -lt 1 -or $taskHeight -lt 1 -or $taskWidth -gt 20000 -or $taskHeig
 if(($inputConfig.canvasWidth -and $inputConfig.canvasWidth -ne $taskWidth) -or ($inputConfig.canvasHeight -and $inputConfig.canvasHeight -ne $taskHeight)){throw 'NATIVE_EXPORT_CANVAS_MISMATCH'}
 $config=@{targetDocument=$native.target_document;groupName=$inputConfig.jobName;scale=$native.scale;width=$taskWidth;height=$taskHeight;svgSha256=$native.svg_sha256;outputPng=[IO.Path]::GetFullPath($OutputPng).Replace('\','/');outputAi='';antiAliasing=(-not [bool]$NoAntialias)}
 $config.objectMode=[string]$inputConfig.objectMode
+$config.targetDocumentPath=[string]$native.target_document_path
 $config.objects=@($inputConfig.objects)
 if($OutputAi){$config.outputAi=[IO.Path]::GetFullPath($OutputAi).Replace('\','/')}
 if($DryRun){$config | ConvertTo-Json -Compress; 'DRY_RUN|No Illustrator connection';exit 0}

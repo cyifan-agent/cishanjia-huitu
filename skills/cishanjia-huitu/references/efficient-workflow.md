@@ -6,6 +6,26 @@ loosen thresholds or skip final appearance/native checks to gain speed.
 
 ## Prepare and revise once per meaningful change
 
+Prepare a series' shared font families, palette and complete box/connector helpers
+once, but measure each reference separately. During read-only diagnosis, independent
+preparation of later figures may continue. If the user asks for one at a time,
+draw/verify/deliver native documents serially; if they ask to approve each figure,
+keep later dependent work pending until that approval. Separate preparation time
+from native playback time when reporting speed.
+
+The native bridge tries configured and last-successful identifiers, then the
+generic running-app identifier, before registry discovery. It caches only the
+identifier, reattaching on every call so app restarts cannot reuse a stale COM
+object. Windows PowerShell 5.1/STA remains the native host; PowerShell 7 wrappers
+forward automatically. A host/access failure is not evidence the app is closed.
+
+Font preflight builds one local native font index and resolves each family/style
+request once. Regular, Light, Medium, SemiBold and Bold prefer their actual native
+faces. Preview fonts include .ttc/.otc collections and static instances of variable
+weights; selected source bytes and instance hashes govern cache reuse. Use the
+same project cache directory across figures. Missing glyphs fail early instead
+of silently becoming boxes. Installed fonts are never edited or packaged.
+
 Inspect source layout and enlarged ambiguous details together, then freeze the
 inventory, coordinates, feature ownership and typography groups before assembly.
 For repeated motifs that actually match in this reference, author one complete
@@ -26,6 +46,20 @@ or enqueue retries behind a hung native script. Skill regression suites are for
 tool changes, not something to rerun during every ordinary figure recreation.
 
 ## Reuse exact diagnostic rendering
+
+For a newly authored master, `review_prepare.py` runs redraw ownership/route checks
+and reference comparison in one process with shared fonts and renderer state:
+
+```powershell
+& $taskPy -X utf8 "$taskSkill\scripts\review_prepare.py" --source reference.png --svg master.svg --plan drawing-plan.json --regions regions.json --output-dir qa --cache-dir render-cache
+```
+
+It writes the same full-resolution evidence plus an **unreviewed** template.
+It neither approves the figure nor imports it and never overwrites an existing
+`visual-review.json`. Inspect all evidence, complete a separate review, then run
+quality_gate.py with the matching master, plan and comparison. Individual commands
+below remain useful for local repairs. Do not add another full preparation pass
+after a successful unchanged review just to repeat work.
 
 Pass the same project-local cache directory to every review command:
 
@@ -68,6 +102,15 @@ remains configurable when the user wants to watch more slowly. Geometry, paint,
 live text, protection from ungroup and placement are unchanged by this parameter.
 Do not skip redraw or collapse the whole figure into an image to accelerate it.
 
+For several open documents, supply the intended document name/path at import.
+The preflight captures it before font enumeration; the saved output path then
+becomes its identity for movement checks/export. Background tab switches do not
+redirect those operations. Ambiguous names fail before drawing. Measured text
+fitting, when explicitly supplied, happens before owner conversion to symbols;
+only temporary text copies are outlined to measure glyph bounds. Final text
+stays live. Bounds plus optional measured tracking spans replace project-specific
+post-import repair scripts; there is no default tracking correction for Chinese.
+
 The final actual Illustrator export, every-owner movement check, five repeated
 ungroup cycles and enlarged visual review remain required. This skill update
 does not contact Illustrator to benchmark a user's open drawing.
@@ -80,3 +123,9 @@ review requirements. It also compares fast/slow native preparation in -DryRun.
 Its synthetic repeat-audit benchmark excludes manual reconstruction, human review
 and Illustrator. Report that scope; do not turn a cache timing or a reduction in
 deliberate pauses into a promised speedup for an entire complex figure.
+
+Session/variable-font/preparation tests additionally cover mocked connection
+fallback/restart, intended target selection with identical filenames, native
+font lookup reuse, CJK collection/variable weights, missing glyphs, stale text
+fit manifests and pending human review. These are synthetic/mocked checks only;
+skills-only maintenance does not contact Illustrator or the user's source images.

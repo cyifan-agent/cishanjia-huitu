@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.1.0 — 2026-10-19
+
+- Update the installed skill to `2026-10-16-session-speed-2`; prefer the
+  current installed release over project copies and old backups.
+- Reuse source-hashed static instances of variable fonts and selected TTC/OTC
+  faces; honor inherited typography and fail early on missing glyphs.
+- Try configured, last-successful and generic Illustrator identifiers before
+  registry discovery, while reattaching to the existing application each time.
+- Capture document identity before font work and target saved documents by full
+  path. Keep live text fitting and per-span tracking bound to the current SVG.
+- Share prepared fonts across comparison and audit work. Prepare review evidence
+  in one process without granting approval or changing quality thresholds.
+- Include synthetic regressions for font reuse, connection behavior, document
+  identity, text manifests and preservation of pending/manual visual review.
+- Preserve local runtime configuration, dependencies and existing user artwork.
+
 ## 1.0.0 — 2026-10-09
 
 - Rename the installed skill to `cishanjia-huitu` and release it independently.

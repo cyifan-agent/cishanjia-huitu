@@ -23,5 +23,8 @@ jobs:
           python skills/cishanjia-huitu/scripts/tests/test_joined_routes.py
           python skills/cishanjia-huitu/scripts/tests/test_source_markers.py
           python skills/cishanjia-huitu/scripts/tests/test_native_paint.py
+          python skills/cishanjia-huitu/scripts/tests/test_variable_preview.py
+          python skills/cishanjia-huitu/scripts/tests/test_session_reliability.py
+          python skills/cishanjia-huitu/scripts/tests/test_review_prepare.py
           node skills/cishanjia-huitu/scripts/tests/test_export_owner.js skills/cishanjia-huitu/scripts/export_native_figure.jsx
           node skills/cishanjia-huitu/scripts/tests/symbol_name_test.js skills/cishanjia-huitu/scripts/native_svg_import.jsx

@@ -30,7 +30,8 @@ def fit(source:Path,cleaned:Path,manifest:Path,output:Path,report:Path|None=None
         families={entry.get('font_family','Arial') for entry in data['text_elements']}
         families.update(families_to_try or [])
         dummy.write_text('<svg xmlns="http://www.w3.org/2000/svg">'+''.join('<text font-family="'+html.escape(name,quote=True)+'" font-weight="'+html.escape(str(entry.get('font_weight','normal')),quote=True)+'" font-style="'+html.escape(str(entry.get('font_style','normal')),quote=True)+'">x</text>' for name in families for entry in data['text_elements'])+'</svg>',encoding='utf-8')
-        files=font_files_for_svg(dummy,Path(temporary)/'fonts')
+        font_cache=output.parent/'font-cache'
+        files=font_files_for_svg(dummy,Path(temporary)/'fonts',cache_dir=font_cache)
         for entry in data['text_elements']:
             if '\n' in entry['content']:raise ValueError('Fit spatially separate lines as separate entries')
             if entry.get('rotation',0):raise ValueError('Rotated labels need manual fitting')
@@ -44,8 +45,8 @@ def fit(source:Path,cleaned:Path,manifest:Path,output:Path,report:Path|None=None
             by_family={}
             weight=entry.get('font_weight','normal');style=entry.get('font_style','normal')
             for family_candidate in (families_to_try or [entry.get('font_family','Arial')]):
-              natural=ImageFont.truetype(resolve_font_file(family_candidate,weight,style),100)
-              original_font=ImageFont.truetype(resolve_font_file(entry.get('font_family','Arial'),weight,style),100)
+              natural=ImageFont.truetype(resolve_font_file(family_candidate,weight,style,cache_dir=font_cache),100)
+              original_font=ImageFont.truetype(resolve_font_file(entry.get('font_family','Arial'),weight,style,cache_dir=font_cache),100)
               width_ratio=original_font.getlength(entry['content'])/natural.getlength(entry['content'])
               best=None
               for factor in np.linspace(.92,1.08,9):

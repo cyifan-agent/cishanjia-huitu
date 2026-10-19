@@ -9,6 +9,8 @@ if($PSVersionTable.PSEdition -eq 'Core' -and -not $DryRun){
 $cfg=Get-Content -LiteralPath (Join-Path $NativeWorkDir 'native-config.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 $native=Get-Content -LiteralPath (Join-Path $NativeWorkDir 'native-import-report.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 if($native.status -ne 'PASS' -or $native.svg_sha256 -ne $cfg.sha256 -or $cfg.grouping -ne 'semantic-v1'){throw 'EDITABILITY_JOB_INVALID'}
+$cfg | Add-Member -NotePropertyName targetDocument -NotePropertyValue ([string]$native.target_document) -Force
+$cfg | Add-Member -NotePropertyName targetDocumentPath -NotePropertyValue ([string]$native.target_document_path) -Force
 if($DryRun){'DRY_RUN|All connectors and representative object types; no Illustrator connection';exit 0}
 if($cfg.objectMode -eq 'symbol'){
  & (Join-Path $PSScriptRoot 'verify_symbol_editability.ps1') -NativeWorkDir $NativeWorkDir -OutputReport $OutputReport
@@ -16,7 +18,20 @@ if($cfg.objectMode -eq 'symbol'){
 }
 $script=@'
 (function(){
- var c=HUITU_EDIT_CONFIG,doc=app.activeDocument,temp=null,level=app.userInteractionLevel;
+ var c=HUITU_EDIT_CONFIG,doc=capturedDocument(c.targetDocument,c.targetDocumentPath),temp=null,level=app.userInteractionLevel;
+ function capturedDocument(name,path){
+  if(!name&&!path)throw new Error('Captured target document required');
+  var key=String(path||'').replace(/\\/g,'/').toLowerCase(),chosen=null,count=0;
+  for(var di=0;di<app.documents.length;di++){
+   var candidate=app.documents[di],matched=false;
+   if(key){var actual='';try{actual=String(candidate.fullName.fsName).replace(/\\/g,'/').toLowerCase();}catch(unsaved){}matched=actual===key;}
+   else matched=candidate.name===name;
+   if(matched){chosen=candidate;count++;}
+  }
+  if(!count)throw new Error('Captured target document missing: '+name);
+  if(count!==1)throw new Error('Captured target document ambiguous: '+name);
+  chosen.activate();return chosen;
+ }
  function q(v){return '"'+String(v).replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'"';}
  function same(a,b){if(a.length!==b.length)return false;for(var i=0;i<a.length;i++)if(Math.abs(a[i]-b[i])>.02)return false;return true;}
  function snapshot(g){return {bounds:g.geometricBounds,items:g.pageItems.length,text:g.textFrames.length};}

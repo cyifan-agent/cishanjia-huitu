@@ -12,6 +12,9 @@ python skills/cishanjia-huitu/scripts/tests/test_speed.py
 python skills/cishanjia-huitu/scripts/tests/test_joined_routes.py
 python skills/cishanjia-huitu/scripts/tests/test_source_markers.py
 python skills/cishanjia-huitu/scripts/tests/test_portable_runtime.py
+python skills/cishanjia-huitu/scripts/tests/test_variable_preview.py
+python skills/cishanjia-huitu/scripts/tests/test_session_reliability.py
+python skills/cishanjia-huitu/scripts/tests/test_review_prepare.py
 node skills/cishanjia-huitu/scripts/tests/test_export_owner.js skills/cishanjia-huitu/scripts/export_native_figure.jsx
 node skills/cishanjia-huitu/scripts/tests/symbol_name_test.js skills/cishanjia-huitu/scripts/native_svg_import.jsx
 ```
@@ -19,7 +22,9 @@ node skills/cishanjia-huitu/scripts/tests/symbol_name_test.js skills/cishanjia-h
 These tests use synthetic vectors, temporary files and mocked Illustrator;
 they do not upload user images or connect to the application. Node.js is needed
 for JSX mocks. Arial and Arial Narrow must be locally available for font tests.
-Native bridge changes additionally need a reviewed tiny smoke test in a
+During skill-only maintenance, use the bundled connection backends and native
+JSX mocks without connecting to Illustrator. Before the next authorized drawing
+delivery after native bridge changes, additionally review a tiny smoke test in a
 temporary Illustrator document on the contributor's Windows installation.
 
 For drawing defects, record the object ID, observed source mismatch, cause,

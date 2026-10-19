@@ -3,13 +3,18 @@ name: cishanjia-huitu
 description: Redraw scientific references locally as clean editable vector artwork in Illustrator, with source-specific contours, live text and independently movable arrows and biological objects.
 metadata:
   short-description: Local vector redrawing with independent objects
-  revision: "2026-10-09-speed-public-1"
+  revision: "2026-10-16-session-speed-2"
 ---
 
 # cishanjia huitu
 
-This is the portable release of the 2026-10-08-speed-1 workflow, including
-subsequent source-arrow and whole-object export fixes. Before first use, read
+User preference: use this installed release as the preferred entry point whenever
+cishanjia-huitu (also spelled cisanjia-huitu in requests) is invoked. Prefer it over
+older backups or project-local copies; use an older release only when the user
+explicitly requests that version.
+
+This release includes reusable font preparation, fast existing-app attachment,
+captured document identity and source-bound native text fitting. Before first use, read
 [installation.md](references/installation.md): resolve this skill directory,
 check its local runtime, and initialize missing dependencies once. All drawing
 tools are bundled here; do not require another drawing skill or personal paths.
@@ -21,6 +26,8 @@ Pixel-color meshes, raster crops, clipped screenshots, embedded images and whole
 Read [true-vector-redraw.md](references/true-vector-redraw.md) for source-specific construction and the drawing-plan schema, and [object-grouping.md](references/object-grouping.md) for independent editing. For complex anatomy, grouped font fitting or object-local revisions, also read [detail-refinement.md](references/detail-refinement.md) and [complex-figure-mode.md](references/complex-figure-mode.md). Commands and recovery are in [local-workflow.md](references/local-workflow.md).
 
 Default to the quality-preserving efficiency workflow in [efficient-workflow.md](references/efficient-workflow.md): prepare once, reuse source-matched complete components, pass one project-local --cache-dir to preview/audit/gate commands, and repair only defective owners. Cached exact PNGs are diagnostic evidence only; every logical check and final review still runs. Keep resolution, tolerances, source detail, protected objects and native verification unchanged.
+
+For flowcharts and scientific technical roadmaps, use [flowchart-mode.md](references/flowchart-mode.md). Prepare shared typography and box/connector helpers once for a requested series, while adapting every figure's content and geometry. Deliver native documents in the user's requested order. For detailed anatomy, retain the biological feature inventory below.
 
 ## Prepare before drawing
 
@@ -51,6 +58,8 @@ scene_patch.py extracts complete vector components with their live text and pain
 ## Illustrator delivery
 
 When authorized, use native_svg_import.ps1 with the passing QA report. For visible construction use -LiveDraw: commit complete authored object groups one at a time with a redraw between steps. Prepare and review the composition first. Pixel/point batch playback splits editing units and is not the live drawing route.
+
+Specify `-TargetDocumentName` for a known unique open document, or `-TargetDocumentPath` for saved documents sharing a filename. Otherwise preflight captures the active document once. Verification/export resolve that captured identity, including its saved path, and fail on missing/ambiguous targets. For measured CJK or mixed-script corrections, read the optional `-TextFitManifest` contract in [detail-refinement.md](references/detail-refinement.md); never reuse a previous figure's tracking values as defaults.
 
 Visible playback now defaults to 250 ms of deliberate pause per complete object; increase -DelayMs when the user wants slower observation. Do not add per-path sleeps or repeated screen polling. Illustrator calls remain serial.
 
