@@ -68,6 +68,12 @@ plan and route geometry, so a manually marked pass cannot approve a color mesh.
 
 ## Drawing and recovery
 
+Every delivered AI also requires [saved-file close/reopen verification](reopen-verification.md).
+After saving and initial native QA, reopen an exact disk copy with observable
+alerts, compare its exported layout, and repeat native editability checks from
+that reopened document. The command sequence below covers initial construction
+only; it does not prove reopening compatibility.
+
 For multiple open documents add `-TargetDocumentName 'known unique name'` to
 import, or `-TargetDocumentPath 'absolute existing saved AI path'` when basenames
 repeat. Import preflight captures the target; the successful saved output path

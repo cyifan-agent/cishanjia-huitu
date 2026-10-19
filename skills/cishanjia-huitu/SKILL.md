@@ -3,10 +3,15 @@ name: cishanjia-huitu
 description: Redraw scientific references locally as clean editable vector artwork in Illustrator, with source-specific contours, live text and independently movable arrows and biological objects.
 metadata:
   short-description: Local vector redrawing with independent objects
-  revision: "2026-10-16-session-speed-2"
+  revision: "2026-10-19-reopen-check-1"
 ---
 
 # cishanjia huitu
+
+Before native delivery, verify the final saved AI by closing and reopening an
+exact disk copy, observing compatibility prompts, and rechecking its layout and
+editability. Read [reopen-verification.md](references/reopen-verification.md).
+An in-memory check or initial export alone does not complete delivery.
 
 User preference: use this installed release as the preferred entry point whenever
 cishanjia-huitu (also spelled cisanjia-huitu in requests) is invoked. Prefer it over
@@ -66,6 +71,12 @@ Visible playback now defaults to 250 ms of deliberate pause per complete object;
 Capture source artboard coordinates and group bounds while that document is active. Duplicate each complete group to the target layer, move it into the figure group and convert it to one native symbol without changing bounds. Use meaningful biological names. Cross-document duplication directly to a group can fail. Native collections contain direct children; symbol definitions hide their text from document-level text counts. Inspect an expanded disposable instance to verify live text; never expand the user's instances just for counting. Validate a small synthetic sample after bridge changes. Skills-only updates do not connect to Illustrator.
 
 Inspect the actual Illustrator export. Use verify_native_editability.ps1: symbol mode tests every object, repeats ungroup five times, checks complete translation with unchanged neighbors, and expands only temporary copies to inspect all native vector parts, gradient fills/strokes and live text. Inspect isolated parts and old footprints too. Export at source dimensions anchored to the drawn background. Preserve other artwork and save a new AI. Deliver one preview and explain that double-click enters a biological object; the path entries inside describe editable contours. Do not call an incomplete sketch a successful redraw.
+
+For each saved AI, complete the disk-copy close/reopen checks in
+[reopen-verification.md](references/reopen-verification.md), retain a final-AI-hash-bound
+report, and inspect an export from the reopened file. Review any text-layout
+compatibility prompt before choosing Update. Disclose recurring warnings or
+unverified reopening; do not claim those limitations were resolved.
 
 ## Scope and limitations
 

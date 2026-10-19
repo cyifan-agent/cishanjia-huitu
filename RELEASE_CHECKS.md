@@ -1,4 +1,17 @@
-# Release checks — 1.1.0
+# Release checks — 1.1.1
+
+- Validated the updated skill frontmatter and local reference links.
+- Passed 55 skill and 15 redraw synthetic regression cases on Windows/Python
+  3.12, with zero failures or errors. Native scripting sources are unchanged.
+- Compared the remaining installed skill source with the repository and retained
+  unchanged code, runtime requirements and existing test coverage.
+- This release adds mandatory saved-file reopen instructions and evidence
+  requirements. It makes no live Illustrator calls during skill maintenance and
+  does not retroactively certify any existing AI file's reopening behavior.
+- Publish only the four updated skill documentation files plus repository
+  documentation. Exclude private runtime configuration, dependencies and artwork.
+
+## Release checks — 1.1.0
 
 - Validated the installed and repository skill frontmatter with the Codex
   skill-creator validator.
@@ -35,3 +48,4 @@ The existing Illustrator drawing, whole-object editing and actual-export checks
 remain mandatory for each delivered figure. Synthetic tests are not a visual
 quality guarantee for an unseen reference. Public CI covers font-independent
 synthetic vector checks; full typography tests require local Arial/Arial Narrow.
+

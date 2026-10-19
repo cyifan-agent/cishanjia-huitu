@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.1.1 — 2026-10-19
+
+- Update the installed skill to `2026-10-19-reopen-check-1` and retain it as the
+  preferred installed entry point over older backups and project copies.
+- Require every final AI to be checked from an exact disk copy after closing and
+  reopening, with observable dialogs and evidence bound to the saved file hash.
+- Review text-layout compatibility prompts before updating. Compare reopened
+  exports and repeat live-text, gradient, object-movement and ungroup checks.
+- Document safe temporary-document handling, bounded corrective retries, and
+  explicit reporting of recurring warnings or unverified reopening.
+- This is a delivery-workflow documentation update. It does not add automatic
+  dialog handling or claim that existing figures passed a live reopen test.
+
 ## 1.1.0 — 2026-10-19
 
 - Update the installed skill to `2026-10-16-session-speed-2`; prefer the
@@ -34,3 +47,4 @@
 The release does not claim proprietary-model parity or an installed local
 neural network. Speed improvements reduce redundant work without skipping
 source-feature, arrow-isolation, visual or native editing checks.
+

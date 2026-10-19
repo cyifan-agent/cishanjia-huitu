@@ -112,8 +112,11 @@ stays live. Bounds plus optional measured tracking spans replace project-specifi
 post-import repair scripts; there is no default tracking correction for Chinese.
 
 The final actual Illustrator export, every-owner movement check, five repeated
-ungroup cycles and enlarged visual review remain required. This skill update
-does not contact Illustrator to benchmark a user's open drawing.
+ungroup cycles and enlarged visual review remain required. Every final AI must
+also pass [saved-file close/reopen verification](reopen-verification.md); cached
+SVG previews or in-memory checks cannot replace opening the actual saved bytes,
+observing compatibility prompts, and checking the reopened layout/editability.
+Skills-only maintenance does not contact Illustrator or open user artwork.
 
 ## Measure the limited claim
 
